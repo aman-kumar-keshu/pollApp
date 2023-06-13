@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"polling-app/db"
+	"github.com/go-chi/chi"
 )
 
 type App struct {
@@ -12,7 +13,7 @@ type App struct {
 	handlers map[string]http.HandlerFunc
 }
 
-func NewApp(d db.DB, cors bool) App {
+func NewApp(d db.DB, cors bool) error {
 	app := App{
 		d:        d,
 		handlers: make(map[string]http.HandlerFunc),
@@ -21,17 +22,25 @@ func NewApp(d db.DB, cors bool) App {
 	if !cors {
 		techHandler = disableCors(techHandler)
 	}
-	app.handlers["/api/technologies"] = techHandler
-	app.handlers["/"] = http.FileServer(http.Dir("/webapp")).ServeHTTP
-	return app
+	r:= chi.NewRouter()
+	r.Get("/ping", pingPong)
+	r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
+	log.Println("Web server is available on port 8080")
+
+	err:= http.ListenAndServe(":8080",r)
+	return err
+	
 }
 
-func (a *App) Serve() error {
-	for path, handler := range a.handlers {
-		http.Handle(path, handler)
+func pingPong(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	data := "Ping Successful"
+	err := json.NewEncoder(w).Encode(data)
+	if err != nil {
+		sendErr(w, http.StatusInternalServerError, err.Error())
+		return
 	}
-	log.Println("Web server is available on port 8080")
-	return http.ListenAndServe(":8080", nil)
+	log.Println("Ping");
 }
 
 func (a *App) GetTechnologies(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +55,7 @@ func (a *App) GetTechnologies(w http.ResponseWriter, r *http.Request) {
 		sendErr(w, http.StatusInternalServerError, err.Error())
 	}
 }
+
 
 func sendErr(w http.ResponseWriter, code int, message string) {
 	resp, _ := json.Marshal(map[string]string{"error": message})

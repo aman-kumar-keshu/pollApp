@@ -17,8 +17,7 @@ func main() {
 	defer d.Close()
 	// CORS is enabled only in prod profile
 	cors := os.Getenv("profile") == "prod"
-	app := web.NewApp(db.NewDB(d), cors)
-	err = app.Serve()
+	err = web.NewApp(db.NewDB(d), cors)
 	log.Println("Error", err)
 }
 
