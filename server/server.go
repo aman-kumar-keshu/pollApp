@@ -1,7 +1,7 @@
 package main
 
 import (
-	"polling-app/db"
+	"polling-app/database"
 	"polling-app/web"
 	"database/sql"
 	_ "github.com/lib/pq"
@@ -10,18 +10,29 @@ import (
 )
 
 func main() {
-	d, err := sql.Open("postgres", dataSource())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer d.Close()
+	d := initDB()
 	// CORS is enabled only in prod profile
 	cors := os.Getenv("profile") == "prod"
-	err = web.NewApp(db.NewDB(d), cors)
+	err := web.NewApp(database.NewDB(d), cors)
 	log.Println("Error", err)
 }
 
-func dataSource() string {
+
+func initDB() *sql.DB  {
+
+	db, err := sql.Open("postgres", filePath())
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	if db == nil {
+		log.Fatal("db nil")
+	}
+	log.Println("Successfully connected to the db")
+	return db
+}
+
+func filePath() string {
 	host := "localhost"
 	pass := "pass"
 	if os.Getenv("profile") == "prod" {
