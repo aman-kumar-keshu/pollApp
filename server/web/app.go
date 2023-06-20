@@ -1,11 +1,13 @@
 package web
 
 import (
+	"polling-app/model"
 	"encoding/json"
 	"log"
 	"net/http"
 	"polling-app/database"
 	"github.com/go-chi/chi"
+	"strconv"
 )
 
 type App struct {
@@ -16,7 +18,6 @@ type App struct {
 func NewApp(d database.DB, cors bool) error {
 	app := App{
 		d:        d,
-		handlers: make(map[string]http.HandlerFunc),
 	}
 	pollHandler := app.GetPolls
 	if !cors {
@@ -25,7 +26,11 @@ func NewApp(d database.DB, cors bool) error {
 	r:= chi.NewRouter()
 	r.Get("/ping", pingPong)
 	r.Get("/polls", app.GetPolls)
+	r.Put("/poll/{id}", app.UpdatePoll)
 	r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
+	r.Post("/login", app.LoginUser)
+	r.Post("/signup", app.SignUpUser)
+
 	log.Println("Web server is available on port 8080")
 
 	err:= http.ListenAndServe(":8080",r)
@@ -45,6 +50,13 @@ func pingPong(w http.ResponseWriter, r *http.Request) {
 }
 
 
+func (a *App) LoginUser(w http.ResponseWriter, r *http.Request)  {
+	// 
+}
+func (a *App) SignUpUser(w http.ResponseWriter, r *http.Request)  {
+	// 
+}
+
 func (a *App) GetPolls(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	polls, err := a.d.GetPolls()
@@ -57,6 +69,33 @@ func (a *App) GetPolls(w http.ResponseWriter, r *http.Request) {
 		sendErr(w, http.StatusInternalServerError, err.Error())
 	}
 }
+
+
+func (a *App) UpdatePoll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var poll model.Poll
+	index,_ := strconv.Atoi(chi.URLParam(r, "id"))
+	json.NewDecoder(r.Body).Decode(&poll)
+
+	// index, _ := strconv.Atoi(c.Param("index"))
+
+	id, err := a.d.UpdatePoll(index, poll.Name, poll.Upvotes, poll.Downvotes)
+
+	if err != nil {
+		sendErr(w, http.StatusInternalServerError, err.Error())
+	} else {
+		 
+		err := json.NewEncoder(w).Encode(id)
+		if err != nil {
+			sendErr(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		log.Println("Updated poll", id)
+
+	}
+
+}
+
 
 func sendErr(w http.ResponseWriter, code int, message string) {
 	resp, _ := json.Marshal(map[string]string{"error": message})

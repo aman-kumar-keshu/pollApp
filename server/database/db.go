@@ -1,12 +1,14 @@
 package database
 
 import (
+	"fmt"
 	"polling-app/model"
 	"database/sql"
 )
 
 type DB interface {
 	GetPolls() (model.PollCollection,error)
+	UpdatePoll( index int, name string, upvotes int, downvotes int) (int64, error)
 }
 
 type PostgresDB struct {
@@ -16,25 +18,6 @@ type PostgresDB struct {
 func NewDB(db *sql.DB) DB {
 	return PostgresDB{db: db}
 }
-
-func (d PostgresDB) GetTechnologies() ([]*model.Technology, error) {
-	rows, err := d.db.Query("select name, details from technologies")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var tech []*model.Technology
-	for rows.Next() {
-		t := new(model.Technology)
-		err = rows.Scan(&t.Name, &t.Details)
-		if err != nil {
-			return nil, err
-		}
-		tech = append(tech, t)
-	}
-	return tech, nil
-}
-
 
 func (d PostgresDB) GetPolls() (model.PollCollection, error) {
 	sql := "SELECT * FROM polls"
@@ -64,29 +47,20 @@ func (d PostgresDB) GetPolls() (model.PollCollection, error) {
 	return result,nil
 }
 
-func UpdatePoll(db *sql.DB, index int, name string, upvotes int, downvotes int) (int64, error) {
-	sql := "UPDATE polls SET (upvotes, downvotes) = (?, ?) WHERE id = ?"
+func (d PostgresDB) UpdatePoll( index int, name string, upvotes int, downvotes int) (int, error) {
+	sql := fmt.Sprintf("UPDATE polls SET (upvotes, downvotes) = (%d, %d) WHERE id = %d",upvotes,downvotes,index)
 
-	// Create a prepared SQL statement
-	stmt, err := db.Prepare(sql)
 
+	rows, err := d.db.Query(sql)
 	// Exit if we get an error
 	if err != nil {
 		panic(err)
 	}
 
 	// Make sure to cleanup after the program exits
-	defer stmt.Close()
+	defer rows.Close()
 
-	// Replace the '?' in our prepared statement with 'upvotes, downvotes, index'
-	result, err2 := stmt.Exec(upvotes, downvotes, index)
-
-	// Exit if we get an error
-	if err2 != nil {
-		panic(err2)
-	}
-
-	return result.RowsAffected()
+	return index,nil
 }
 
 
