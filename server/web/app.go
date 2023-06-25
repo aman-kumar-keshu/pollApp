@@ -10,11 +10,11 @@ import (
 )
 
 type App struct {
-	d        database.DB
+	d        database.PostgresDB
 }
 
 
-func NewApp(d database.DB)  {
+func NewApp(d database.PostgresDB)  {
 	app := App{
 		d:  d,
 	} 
@@ -27,6 +27,7 @@ func NewApp(d database.DB)  {
 	publicAPI.GET("/ping", pingPong)
 	publicAPI.GET("/polls", app.GetPolls)
 	publicAPI.PUT("/poll/:id", app.UpdatePoll)
+	publicAPI.POST("/poll", app.createPoll)
 	// r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
 	// r.Post("/login", app.LoginUser)
 	// r.Post("/signup", routes.SignUpUser)
@@ -80,7 +81,23 @@ func (a *App) GetPolls(c *gin.Context) {
 	})
 }
 
+func (a *App) createPoll(c *gin.Context) {
+	log.Println("Create POll")
+	var poll model.Poll
+	if err:= c.ShouldBindJSON(&poll); err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	log.Println("New Poll : ",poll)
+	err := a.d.CreatePoll(poll.Name, poll.Topic, poll.Src)
 
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}  
+	c.Status(http.StatusOK)
+
+}
 func (a *App) UpdatePoll(c *gin.Context) {
 	log.Println("updating polls")
 

@@ -6,21 +6,17 @@ import (
 	"database/sql"
 )
 
-type DB interface {
-	GetPolls() (model.PollCollection,error)
-	UpdatePoll( index int, name string, upvotes int, downvotes int) error
-	Migrate()
-}
+
 
 type PostgresDB struct {
 	db *sql.DB
 }
 
-func NewDB(db *sql.DB) DB {
+func NewDB(db *sql.DB) PostgresDB {
 	return PostgresDB{db: db}
 }
 
-func (d PostgresDB) GetPolls() (model.PollCollection, error) {
+func (d *PostgresDB) GetPolls() (model.PollCollection, error) {
 	sql := "SELECT * FROM polls order by id"
 
 	rows, err := d.db.Query(sql)
@@ -48,7 +44,7 @@ func (d PostgresDB) GetPolls() (model.PollCollection, error) {
 	return result,nil
 }
 
-func (d PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int) error {
+func (d *PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int) error {
 	sql := fmt.Sprintf("UPDATE polls SET (upvotes, downvotes) = (%d, %d) WHERE id = %d",upvotes,downvotes,id)
 
 
@@ -64,8 +60,20 @@ func (d PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int)
 	return nil
 }
 
+func (d *PostgresDB) CreatePoll (name string, topic string, src string) error {
+	fmt.Println("create post db func",name,topic,src)
+	query := fmt.Sprintf("INSERT INTO polls(name, topic, src, upvotes, downvotes) VALUES('%s','%s', '%s', 0, 0)", name,topic, src)
+	fmt.Print(query)
+	_, err := d.db.Query(query)
+	
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
 
-func (d PostgresDB) Migrate (){
+
+func (d *PostgresDB) Migrate (){
 	sql := `
 	DROP TABLE polls;
 
