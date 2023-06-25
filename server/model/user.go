@@ -5,4 +5,6 @@ type User struct {
 	Email string
 	Password string
 	Phone int
+	Role int
+	CreateDate string
 } 

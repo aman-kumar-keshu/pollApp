@@ -12,9 +12,7 @@ import (
 func main() {
 	d := initDB()
 	// CORS is enabled only in prod profile
-	cors := os.Getenv("profile") == "prod"
-	err := web.NewApp(database.NewDB(d), cors)
-	log.Println("Error", err)
+	web.NewApp(database.NewDB(d))
 }
 
 
@@ -34,11 +32,12 @@ func initDB() *sql.DB  {
 
 func filePath() string {
 	host := "localhost"
-	pass := "pass"
+	pass := ""
+	user := "amankumarkeshu"
 	if os.Getenv("profile") == "prod" {
 		host = "db"
 		pass = os.Getenv("db_pass")
 	}
-	return "postgresql://" + host + ":5432/goxygen" +
-		"?user=goxygen&sslmode=disable&password=" + pass
+	return "postgresql://" + host + ":5433/poll" +
+		"?user=" + user + "&sslmode=disable&password=" + pass
 }
