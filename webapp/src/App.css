@@ -1,8 +1,5 @@
 body {
-    margin-top: 5%;
-    padding-right: 5%;
-    padding-left: 5%;
-    font-size: larger;
+    all: unset;
 }
 
 @media screen and (min-width: 800px) {
