@@ -1,52 +1,59 @@
 package web
 
 import (
-	"polling-app/model"
-	"encoding/json"
+ 	"polling-app/model"
 	"log"
 	"net/http"
 	"polling-app/database"
-	"github.com/go-chi/chi"
+	"github.com/gin-gonic/gin"
 	"strconv"
 )
 
 type App struct {
 	d        database.DB
-	handlers map[string]http.HandlerFunc
 }
 
-func NewApp(d database.DB, cors bool) error {
+
+func NewApp(d database.DB)  {
 	app := App{
-		d:        d,
-	}
-	pollHandler := app.GetPolls
-	if !cors {
-		pollHandler = disableCors(pollHandler)
-	}
-	r:= chi.NewRouter()
-	r.Get("/ping", pingPong)
-	r.Get("/polls", app.GetPolls)
-	r.Put("/poll/{id}", app.UpdatePoll)
-	r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
-	r.Post("/login", app.LoginUser)
-	r.Post("/signup", app.SignUpUser)
+		d:  d,
+	} 
+	app.d.Migrate()
 
+	server := gin.New()
+	server.Use(cors())
+	publicAPI := server.Group("/")
+	
+	publicAPI.GET("/ping", pingPong)
+	publicAPI.GET("/polls", app.GetPolls)
+	publicAPI.PUT("/poll/:id", app.UpdatePoll)
+	// r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
+	// r.Post("/login", app.LoginUser)
+	// r.Post("/signup", routes.SignUpUser)
 	log.Println("Web server is available on port 8080")
-
-	err:= http.ListenAndServe(":8080",r)
-	return err
+	server.Run(":8080")
 	
 }
 
-func pingPong(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	data := "Ping Successful"
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		sendErr(w, http.StatusInternalServerError, err.Error())
+func cors() gin.HandlerFunc{
+	return func(c *gin.Context) {
+	c.Writer.Header().Set("Content-Type", "application/json")
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Authorization")
+	if c.Request.Method ==http.MethodOptions {
+		c.AbortWithStatus(http.StatusNoContent);
 		return
 	}
-	log.Println("Ping");
+	c.Next();
+}
+}
+
+func pingPong(c *gin.Context) {
+	data := "Ping Successful"
+	c.JSON(http.StatusOK, gin.H{
+		data:data,
+	})
 }
 
 
@@ -57,57 +64,39 @@ func (a *App) SignUpUser(w http.ResponseWriter, r *http.Request)  {
 	// 
 }
 
-func (a *App) GetPolls(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (a *App) GetPolls(c *gin.Context) {
+
+	log.Println("Fetching polls from DB")
+ 
 	polls, err := a.d.GetPolls()
+	log.Println("We got poll", polls)
 	if err != nil {
-		sendErr(w, http.StatusInternalServerError, err.Error())
+		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	err = json.NewEncoder(w).Encode(polls)
-	if err != nil {
-		sendErr(w, http.StatusInternalServerError, err.Error())
-	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"polls": polls,
+	})
 }
 
 
-func (a *App) UpdatePoll(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func (a *App) UpdatePoll(c *gin.Context) {
+	log.Println("updating polls")
+
 	var poll model.Poll
-	index,_ := strconv.Atoi(chi.URLParam(r, "id"))
-	json.NewDecoder(r.Body).Decode(&poll)
-
-	// index, _ := strconv.Atoi(c.Param("index"))
-
-	id, err := a.d.UpdatePoll(index, poll.Name, poll.Upvotes, poll.Downvotes)
+	id,_ := strconv.Atoi(c.Param("id"))
+	log.Println("id",id)
+	if err:= c.ShouldBindJSON(&poll); err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+ 	log.Println("update called",poll)
+	err := a.d.UpdatePoll(id, poll.Name, poll.Upvotes, poll.Downvotes)
 
 	if err != nil {
-		sendErr(w, http.StatusInternalServerError, err.Error())
-	} else {
-		 
-		err := json.NewEncoder(w).Encode(id)
-		if err != nil {
-			sendErr(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		log.Println("Updated poll", id)
-
-	}
-
-}
-
-
-func sendErr(w http.ResponseWriter, code int, message string) {
-	resp, _ := json.Marshal(map[string]string{"error": message})
-	http.Error(w, string(resp), code)
-}
-
-// Needed in order to disable CORS for local development
-func disableCors(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		h(w, r)
-	}
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}  
+	c.Status(http.StatusOK)
 }
