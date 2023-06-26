@@ -1,38 +1,34 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import PollList from "../components/PollList";
 import Header from "../components/Header";
-const endpoint = `http://localhost:8080`;
+import { fetchPolls, updatePolls, deletePoll } from "../services/pollService";
 
 const sortPolls = (polls) => polls.sort((poll1, poll2) => poll1.id - poll2.id);
-
+git 
 function Home() {
   const [polls, setPolls] = useState([]);
 
   useEffect(() => {
-    performAPICall();
+    const getData = async () => {
+      const data = await fetchPolls();
+      console.log("data list fetched from DB", data.polls);
+      setPolls(sortPolls(data.polls.items));
+    };
+    getData();
   }, []);
 
-  const performAPICall = async () => {
-    console.log("Making call to backend to fetch polls");
-    await axios.get(`${endpoint}/polls`).then((res) => {
-      setPolls(sortPolls(res.data.polls.items));
-    });
-  };
-
   const handleUpdate = async (id, updatedPoll) => {
-    console.log("Updating the poll", updatedPoll);
-
     const oldListWithoutId = polls.filter((poll) => poll.id !== id);
-    console.log("oldListWithoutId", oldListWithoutId);
-
     const newPolls = sortPolls([...oldListWithoutId, updatedPoll]);
-    console.log("newPolls", newPolls);
+
     setPolls(newPolls);
-    await axios.put(`${endpoint}/poll/${id}`, updatedPoll);
+    updatePolls(id, updatedPoll);
   };
 
   const handleDelete = (id) => {
+    const oldListWithoutId = polls.filter((poll) => poll.id !== id);
+    setPolls(oldListWithoutId);
+    deletePoll(id);
     console.log("handle delete");
   };
 
@@ -46,7 +42,6 @@ function Home() {
             onDelete={handleDelete}
             onUpdate={handleUpdate}
           />
-          {/* <SubmitForm onFormSubmit={this.handleSubmit} /> */}
         </div>
       </div>
     </>
