@@ -18,7 +18,7 @@ node --version
 
 Start a local PostgreSQL database on `localhost:5432`.
 The database will be populated with test records from the
-[init-db.sql](init-db.sql) file.
+[server/database/db.go](db migrate) function.
 
 Navigate to the `server` folder and start the back end:
 
