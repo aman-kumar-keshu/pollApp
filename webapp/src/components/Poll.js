@@ -6,14 +6,17 @@ function Poll(props) {
       <li>
         <div>Name : {props.poll.name}</div>
         <div>topic : {props.poll.topic}</div>
-        <img
-          height={"100px"}
-          width={"100px"}
-          src={
-            props.poll.src
-            // "https://i.natgeofe.com/n/e76f5368-6797-4794-b7f6-8d757c79ea5c/ng-logo-2fl.png?w=109&h=32"
-          }
-        />
+        <div>
+          {" "}
+          <img
+            height={"100px"}
+            width={"100px"}
+            src={
+              props.poll.src
+              // "https://i.natgeofe.com/n/e76f5368-6797-4794-b7f6-8d757c79ea5c/ng-logo-2fl.png?w=109&h=32"
+            }
+          />
+        </div>
         <button
           onClick={() => {
             props.onUpdate(props.poll.id, {
@@ -40,11 +43,11 @@ function Poll(props) {
 
       <button
         onClick={() => {
-          this.props.onDelete(this.props.id);
+          props.onDelete(props.poll.id);
         }}
       >
         {" "}
-        Delete
+        Delete Poll
       </button>
     </div>
   );
