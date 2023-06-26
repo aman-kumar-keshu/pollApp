@@ -4,7 +4,6 @@ import Header from "../components/Header";
 import { fetchPolls, updatePolls, deletePoll } from "../services/pollService";
 
 const sortPolls = (polls) => polls.sort((poll1, poll2) => poll1.id - poll2.id);
-git 
 function Home() {
   const [polls, setPolls] = useState([]);
 

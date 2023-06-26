@@ -119,11 +119,11 @@ func (d *PostgresDB) Migrate (){
 	  );
 	
 	  INSERT INTO polls (name, topic, src, upvotes, downvotes) VALUES(
-		'Angular','Awesome Angular', 'https://cdn.colorlib.com/wp/wp-content/uploads/sites/2/angular-logo.png', 1, 0
+		'Angular','Awesome Angular', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7F7Ca089qQJSIBKJuWNC2Wnb9nmtsMhvgYtXDa7-9jA&s', 1, 0
 	  );
 	  
 	  INSERT INTO polls(name, topic, src, upvotes, downvotes) VALUES(
-		'Vue', 'Voguish Vue','https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Vue.js_Logo.svg/400px-Vue.js_Logo.svg.png', 1, 0
+		'Vue', 'Voguish Vue','https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrRNrlbypiGF07Uxf_PyVpJv4ipjKCc6s13EKqsLxnHg&s	', 1, 0
 	  );
 	  
 	  INSERT  INTO polls(name, topic, src, upvotes, downvotes) VALUES(
