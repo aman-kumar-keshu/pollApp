@@ -18,16 +18,21 @@ function NewPoll(props) {
 
   return (
     <form onSubmit={handleNewPostSubmit}>
+      <label>Poll Name</label>
       <input
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
+      <label> Poll Topic</label>
+
       <input
         type="text"
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
       />
+      <label> Image Url</label>
+
       <input type="text" value={src} onChange={(e) => setSrc(e.target.value)} />
 
       <button type="submit"> Submit </button>

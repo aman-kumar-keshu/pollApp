@@ -3,6 +3,7 @@ package web
 import (
  	"polling-app/model"
 	"log"
+	"fmt"
 	"net/http"
 	"polling-app/database"
 	"github.com/gin-gonic/gin"
@@ -26,11 +27,12 @@ func NewApp(d database.PostgresDB)  {
 	
 	publicAPI.GET("/ping", pingPong)
 	publicAPI.GET("/polls", app.GetPolls)
+	publicAPI.GET("/poll/:id",app.GetPoll)
 	publicAPI.PUT("/poll/:id", app.UpdatePoll)
 	publicAPI.POST("/poll", app.createPoll)
-	// r.Get("/", http.FileServer(http.Dir("/webapp")).ServeHTTP)
-	// r.Post("/login", app.LoginUser)
-	// r.Post("/signup", routes.SignUpUser)
+	publicAPI.DELETE("/poll/:id", app.deletePoll)
+	// publicAPI.POST("/login", app.LoginUser)
+	// publicAPI.POST("/signup", routes.SignUpUser)
 	log.Println("Web server is available on port 8080")
 	server.Run(":8080")
 	
@@ -95,7 +97,7 @@ func (a *App) createPoll(c *gin.Context) {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}  
-	c.Status(http.StatusOK)
+	c.Status(http.StatusCreated)
 
 }
 func (a *App) UpdatePoll(c *gin.Context) {
@@ -116,4 +118,44 @@ func (a *App) UpdatePoll(c *gin.Context) {
 		return
 	}  
 	c.Status(http.StatusOK)
+}
+func (a *App) GetPoll(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	log.Println("Get Poll Info id:", id);
+
+	poll, err := a.d.GetPoll(id)
+	if poll.ID != id {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": fmt.Sprintf("Id not Found %d!", id),
+		})
+		return
+	}
+ 	if err != nil {
+		c.AbortWithError(http.StatusNotFound,err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"Poll":poll,
+	})
+
+}
+func (a *App) deletePoll (c *gin.Context) {
+	log.Println("Deleting the poll");
+	id,_ := strconv.Atoi(c.Param("id"))
+	poll,err := a.d.GetPoll(id)
+	log.Println("Poll to be deleted", poll)
+	if poll.ID != id {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": fmt.Sprintf("Id not Found %d!", id),
+		})
+		return
+	}
+	err= a.d.DeletePoll(id);
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}  
+	c.JSON(http.StatusOK, gin.H{
+		"Deleted Poll Id": id,
+	})
 }

@@ -6,8 +6,6 @@ import (
 	"database/sql"
 )
 
-
-
 type PostgresDB struct {
 	db *sql.DB
 }
@@ -40,10 +38,35 @@ func (d *PostgresDB) GetPolls() (model.PollCollection, error) {
 
 		result.Polls = append(result.Polls, poll)
 	}
+	if result.Polls == nil {
+		fmt.Println("result polls", result.Polls)
+		result.Polls = make([]model.Poll, 0)
+	}
 
 	return result,nil
 }
+func (d *PostgresDB) GetPoll(id int) (model.Poll,error) {
+	query:= fmt.Sprintf("Select * from polls where id = %d", id)
+	rows, err := d.db.Query(query)
+	if err != nil {
+		panic(err) 
+	}
+	defer rows.Close()
+	poll := model.Poll{}
 
+	for rows.Next() {
+
+		err2 := rows.Scan(&poll.ID, &poll.Name, &poll.Topic, &poll.Src, &poll.Upvotes, &poll.Downvotes)
+
+		if err2 != nil {
+			panic(err2)
+		}
+		fmt.Println("What's inside the rows",poll)
+		return poll,nil
+
+	}
+	return poll,nil
+}
 func (d *PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int) error {
 	sql := fmt.Sprintf("UPDATE polls SET (upvotes, downvotes) = (%d, %d) WHERE id = %d",upvotes,downvotes,id)
 
@@ -72,6 +95,15 @@ func (d *PostgresDB) CreatePoll (name string, topic string, src string) error {
 	return nil
 }
 
+func (d *PostgresDB) DeletePoll(id int) error{
+	query := fmt.Sprintf("DELETE FROM polls where id = %d", id);
+	_, err := d.db.Query(query);
+	if err != nil {
+		panic(err)
+	}
+	return nil
+
+}
 
 func (d *PostgresDB) Migrate (){
 	sql := `
