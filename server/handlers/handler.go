@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"polling-app/database"
 	"strconv"
+	"github.com/google/uuid"
+
 	 )
 
 type Handler struct {
@@ -24,8 +26,7 @@ func (h *Handler) PingPong(c *gin.Context) {
 
 func (h *Handler) SignUpUser(c *gin.Context)  {
 	log.Println("Create User")
-	// body, _ := ioutil.ReadAll(c.Request.Body)
-    // println(string(body))
+
 	var user model.User
 	if err:= c.ShouldBindJSON(&user); err != nil {
 		log.Println("Failed to parse user", err)
@@ -38,18 +39,30 @@ func (h *Handler) SignUpUser(c *gin.Context)  {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	err := h.D.CreateUser(user.Name, user.Email, hashedPassword)
+	userCreated, err := h.D.CreateUser(user.Name, user.Email, hashedPassword)
 
 	if err != nil {
-		c.JSON(http.StatusMethodNotAllowed, gin.H {
+		c.JSON(http.StatusBadRequest, gin.H {
 			"User":  "user not created",
 		})
 		return
 	}
-	log.Println(" User Created : ",user)
+	log.Println(" User Created : ",userCreated)
+
+	token := generateToken()
+	// save token to db
+	err = h.D.SaveToken(token, userCreated.ID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H {
+			"message":  "Token could not be created",
+		})
+		return
+	}
+
 
 	c.JSON(http.StatusOK, gin.H{
-		"user": user,
+		"token": token,
 	})
 }
 
@@ -77,10 +90,19 @@ func (h *Handler) LoginUser(c *gin.Context) {
 		return
 	}
 
+
 	 if CheckPasswordHash(user.Password, dbUser.Password) {
+		token,err := h.D.FetchUserToken(dbUser.ID)
+		if err != nil {
+			log.Println("Cannot fetch Token from DB:")
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+		log.Println("Token Fetched from DB:", token)
+
 		 c.JSON(http.StatusAccepted, gin.H {
 			"status": 200,
 			"message": "Successfully Logged in",
+			"token": token,
 		})
 	 } else {
 		 c.JSON(http.StatusBadRequest, gin.H {
@@ -193,4 +215,11 @@ func Cors() gin.HandlerFunc {
 	}
 	c.Next();
 }
+}
+
+func generateToken() string{
+	token := uuid.New()
+
+
+	return token.String()
 }
