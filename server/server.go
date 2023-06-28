@@ -1,20 +1,33 @@
 package main
 
 import (
+	"polling-app/handlers"
 	"polling-app/database"
-	"polling-app/web"
 	"database/sql"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
+	"polling-app/routes"
 )
+
+
 
 func main() {
 	d := initDB()
-	// CORS is enabled only in prod profile
-	web.NewApp(database.NewDB(d))
+	
+	handler:= NewHandler(database.NewDB(d))
+	routes.InitialiseRoutes(handler)
+
 }
 
+func NewHandler(d database.PostgresDB) *handlers.Handler {
+	handler := &handlers.Handler{
+		D:d,
+	} 
+	handler.D.Migrate()
+	return handler
+	
+}
 
 func initDB() *sql.DB  {
 
@@ -32,7 +45,7 @@ func initDB() *sql.DB  {
 
 func filePath() string {
 	host := "localhost"
-	pass := ""
+	pass := "Aman@1999"
 	user := "amankumarkeshu"
 	if os.Getenv("profile") == "prod" {
 		host = "db"
