@@ -2,10 +2,20 @@ import React from "react";
 
 function Poll(props) {
   return (
-    <div className="list-item">
+    <div
+      className="content"
+      style={{
+        margin: "auto",
+      }}
+    >
       <li>
-        <div>Name : {props.poll.name}</div>
-        <div>topic : {props.poll.topic}</div>
+        <div>
+          <h2>{props.poll.name} </h2>
+        </div>
+        <div>
+          {" "}
+          <h4> topic : {props.poll.topic}</h4>
+        </div>
         <div>
           {" "}
           <img
@@ -25,7 +35,7 @@ function Poll(props) {
             });
           }}
         >
-          upvotes : {props.poll.upvotes}{" "}
+          <strong>upvotes: </strong> {props.poll.upvotes}{" "}
         </button>
 
         <button
@@ -37,7 +47,7 @@ function Poll(props) {
           }}
         >
           {" "}
-          downvotes : {props.poll.downvotes}{" "}
+          <strong>downvotes: </strong> {props.poll.downvotes}{" "}
         </button>
       </li>
 
@@ -46,8 +56,7 @@ function Poll(props) {
           props.onDelete(props.poll.id);
         }}
       >
-        {" "}
-        Delete Poll
+        <strong> Delete Poll</strong>
       </button>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
+import { useNavigate } from "react-router-dom";
+import Button from "@material-ui/core/Button";
 const Header = (props) => {
   const navigate = useNavigate();
 
@@ -24,23 +25,37 @@ const Header = (props) => {
         >
           <>
             <div>polling-app</div>{" "}
-          </>
-          <>
-            <button
-              onClick={() => {
-                navigate("/new");
-              }}
-            >
-              {" "}
-              add new poll
-            </button>
+            {token ? (
+              <Button variant="contained" color="primary" onClick={handleOpen}>
+                Logout
+              </Button>
+            ) : (
+              <Button variant="contained" color="primary" onClick={handleOpen}>
+                Signup
+              </Button>
+            )}
+            {token && (
+              <button
+                onClick={() => {
+                  navigate("/new");
+                }}
+                style={{ height: "50px" }}
+              >
+                Create New poll
+              </button>
+            )}
           </>
         </div>
       </div>
       <div className="card-header"></div>
-      <h2 className="card-header-title header">
+      <h1
+        style={{
+          marginLeft: "500px",
+        }}
+        className="card-header-title header"
+      >
         You have {props.numPolls} Polls
-      </h2>
+      </h1>
     </>
   );
 };
