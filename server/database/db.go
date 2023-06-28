@@ -1,9 +1,12 @@
 package database
 
 import (
+	"log"
 	"fmt"
 	"polling-app/model"
 	"database/sql"
+
+	"errors"
 )
 
 type PostgresDB struct {
@@ -105,9 +108,58 @@ func (d *PostgresDB) DeletePoll(id int) error{
 
 }
 
+func (d *PostgresDB) FetchUser(email string) (model.User, error){
+	sql := fmt.Sprintf("Select id, email, password from users where email = '%s'", email)
+	user := model.User{}
+
+	// row:= d.db.QueryRow(sql)
+	err:= d.db.QueryRow(sql).Scan(&user.ID, &user.Email, &user.Password)
+	log.Println("UserInfo in DB",user.ID, user.Email, user.Password)
+	if user.ID == 0 {
+		return model.User{}, nil
+	}
+
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println(user.ID, user.Email)
+	}
+	return user, nil
+
+}
+func (d *PostgresDB) CreateUser (name string, email string, password string) error {
+	fmt.Println("creating user ",name,email,password)
+ 
+	user, userErr := d.FetchUser(email)
+	log.Println("User fetched from DB", user)
+	if userErr != nil {
+		log.Fatal( "Error fetching user with email")
+		panic(userErr)
+	}
+	if user.Email == email {
+		log.Println("User already exists with this email")
+		return errors.New("User already exists with this email")
+
+	}
+	query := fmt.Sprintf("INSERT INTO users(name, email, password) VALUES('%s','%s', '%s')", name, email, password)
+	fmt.Print(query)
+	_, err := d.db.Query(query)
+	
+	if err != nil {
+		panic(err)
+	}
+	return nil
+}
+
+
+
+
+
 func (d *PostgresDB) Migrate (){
 	sql := `
 	DROP TABLE polls;
+	DROP TABLE users;
+
 
 	CREATE TABLE IF NOT EXISTS polls (
 		id SERIAL NOT NULL PRIMARY KEY,
@@ -117,7 +169,7 @@ func (d *PostgresDB) Migrate (){
 					  upvotes INT NOT NULL,
 					  downvotes INT NOT NULL
 	  );
-	
+
 	  INSERT INTO polls (name, topic, src, upvotes, downvotes) VALUES(
 		'Angular','Awesome Angular', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7F7Ca089qQJSIBKJuWNC2Wnb9nmtsMhvgYtXDa7-9jA&s', 1, 0
 	  );
@@ -134,8 +186,17 @@ func (d *PostgresDB) Migrate (){
 		  
 	  INSERT INTO polls(name, topic, src, upvotes, downvotes) VALUES(
 		'Knockout','Knightly Knockout','https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_1489710848/knockout-js.png', 1, 0);
+		 
+		CREATE TABLE IF NOT EXISTS users (
+			id SERIAL NOT NULL PRIMARY KEY,
+						  name VARCHAR(255) NOT NULL,
+						  email VARCHAR(255) unique NOT NULL,
+						  password VARCHAR  NOT NULL	
+		);
+		INSERT INTO users (name,email, password) VALUES(
+			'Aman Kumar','aman@gmail.com', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7F7Ca089qQJSIBKJuWNC2Wnb9nmtsMhvgYtXDa7-9jA&s');
 		  
-	  `
+	`
 	  rows, err := d.db.Query(sql)
 
 	  if err != nil {
