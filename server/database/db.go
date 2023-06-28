@@ -48,6 +48,7 @@ func (d *PostgresDB) GetPolls() (model.PollCollection, error) {
 
 	return result,nil
 }
+
 func (d *PostgresDB) GetPoll(id int) (model.Poll,error) {
 	query:= fmt.Sprintf("Select * from polls where id = %d", id)
 	rows, err := d.db.Query(query)
@@ -70,6 +71,7 @@ func (d *PostgresDB) GetPoll(id int) (model.Poll,error) {
 	}
 	return poll,nil
 }
+
 func (d *PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int) error {
 	sql := fmt.Sprintf("UPDATE polls SET (upvotes, downvotes) = (%d, %d) WHERE id = %d",upvotes,downvotes,id)
 
@@ -127,7 +129,7 @@ func (d *PostgresDB) FetchUser(email string) (model.User, error){
 	return user, nil
 
 }
-func (d *PostgresDB) CreateUser (name string, email string, password string) error {
+func (d *PostgresDB) CreateUser (name string, email string, password string) (model.User, error) {
 	fmt.Println("creating user ",name,email,password)
  
 	user, userErr := d.FetchUser(email)
@@ -138,19 +140,30 @@ func (d *PostgresDB) CreateUser (name string, email string, password string) err
 	}
 	if user.Email == email {
 		log.Println("User already exists with this email")
-		return errors.New("User already exists with this email")
+		return user, errors.New("User already exists with this email")
 
 	}
 	query := fmt.Sprintf("INSERT INTO users(name, email, password) VALUES('%s','%s', '%s')", name, email, password)
-	fmt.Print(query)
-	_, err := d.db.Query(query)
-	
+	_,err := d.db.Query(query) 
+	fetchedUser, userErr := d.FetchUser(email)
+
+	if userErr != nil {
+		panic(err)
+	}
+	return fetchedUser,nil
+}
+
+func (d *PostgresDB) SaveToken(token string , userId int) (error) {
+	fmt.Println("Saving token to DB ", token, userId )
+ 
+	sql:= fmt.Sprintf("INSERT into tokens (token, userId) values( '%s' , %d)", token, userId);
+	_, err := d.db.Query(sql)
 	if err != nil {
 		panic(err)
 	}
 	return nil
-}
 
+}
 
 
 
@@ -159,6 +172,7 @@ func (d *PostgresDB) Migrate (){
 	sql := `
 	DROP TABLE polls;
 	DROP TABLE users;
+	DROP TABLE tokens;
 
 
 	CREATE TABLE IF NOT EXISTS polls (
@@ -193,9 +207,21 @@ func (d *PostgresDB) Migrate (){
 						  email VARCHAR(255) unique NOT NULL,
 						  password VARCHAR  NOT NULL	
 		);
-		INSERT INTO users (name,email, password) VALUES(
+		
+		INSERT INTO users (name, email, password) VALUES(
 			'Aman Kumar','aman@gmail.com', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7F7Ca089qQJSIBKJuWNC2Wnb9nmtsMhvgYtXDa7-9jA&s');
 		  
+			CREATE TABLE IF NOT EXISTS tokens (
+				id SERIAL NOT NULL PRIMARY KEY,
+				userId int UNIQUE NOT NULL,
+				token VARCHAR(255) UNIQUE NOT NULL
+			  ); 
+
+
+	INSERT INTO tokens (token,userId) VALUES(
+				'346ae688-e640-45e5-9e84-f526df595f0d',1);
+			  
+
 	`
 	  rows, err := d.db.Query(sql)
 
@@ -206,3 +232,15 @@ func (d *PostgresDB) Migrate (){
 	  defer rows.Close()
 }
 	
+
+func (d *PostgresDB) FetchUserToken(userId int) (string, error) {
+	sql:= fmt.Sprintf("Select token from tokens where id = %d", userId);
+	tokenToUserId := model.TokenToUserId{}
+
+	err:= d.db.QueryRow(sql).Scan(&tokenToUserId.Token)
+	if err != nil {
+		log.Fatal( "Error fetching token with userId", userId)	
+	}
+
+	return tokenToUserId.Token, nil
+}

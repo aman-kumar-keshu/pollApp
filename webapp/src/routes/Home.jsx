@@ -2,16 +2,21 @@ import React, { useEffect, useState } from "react";
 import PollList from "../components/PollList";
 import Header from "../components/Header";
 import { fetchPolls, updatePolls, deletePoll } from "../services/pollService";
+import { useNavigate } from "react-router-dom";
 
 const sortPolls = (polls) => polls.sort((poll1, poll2) => poll1.id - poll2.id);
 function Home() {
+  const navigator = useNavigate();
   const [polls, setPolls] = useState([]);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     const getData = async () => {
+      const token = localStorage.getItem("token");
       const data = await fetchPolls();
       console.log("data list fetched from DB", data.polls);
       setPolls(sortPolls(data.polls.items));
+      setToken(token);
     };
     getData();
   }, []);
@@ -33,7 +38,7 @@ function Home() {
 
   return (
     <>
-      <Header numPolls={polls.length} />
+      <Header numPolls={polls.length} token={token} />
       <div className="wrapper">
         <div className="card frame">
           <PollList

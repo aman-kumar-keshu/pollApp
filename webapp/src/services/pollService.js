@@ -24,3 +24,23 @@ export const deletePoll = async (id) => {
   console.log("Deteting the poll");
   await axios.delete(`${ENDPOINT}/poll/${id}`);
 };
+
+export const createUser = async (user) => {
+  console.log("Creating a user");
+  const res = await axios.post(`${ENDPOINT}/users/signup`, user);
+
+  localStorage.setItem("token", res);
+  return res;
+};
+
+export const loginUser = async (user) => {
+  console.log("Login User a user");
+  await axios.post(`${ENDPOINT}/users/login`, user);
+
+  // await axios.post(session_url, {}, {
+  //   auth: {
+  //     username: uname,
+  //     password: pass
+  //   }
+  // });
+};
