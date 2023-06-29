@@ -1,12 +1,37 @@
 import { useState } from "react";
 import { createPoll } from "../services/pollService";
 import { useNavigate } from "react-router-dom";
+import TextField from "@material-ui/core/TextField";
+import { Button, makeStyles } from "@material-ui/core";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing(2),
+
+    "& .MuiTextField-root": {
+      margin: theme.spacing(1),
+      width: "300px",
+    },
+    "& .MuiButtonBase-root": {
+      margin: theme.spacing(2),
+    },
+  },
+  secondary: {
+    // This is green.A700 as hex.
+    main: "#4caf50",
+  },
+}));
 
 function NewPoll(props) {
   const [name, setName] = useState("");
   const [src, setSrc] = useState("");
   const [topic, setTopic] = useState("");
   const [options, setOptions] = useState([]);
+  const classes = useStyles();
 
   const [newOption, setNewOption] = useState("");
 
@@ -26,23 +51,33 @@ function NewPoll(props) {
   };
 
   return (
-    <form onSubmit={handleNewPostSubmit}>
-      <label>Poll Name</label>
-      <input
-        type="text"
+    <form className={classes.root} onSubmit={handleNewPostSubmit}>
+      <TextField
+        label="Name"
+        variant="filled"
+        type="name"
+        required
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
-      <label> Poll Topic</label>
 
-      <input
-        type="text"
+      <TextField
+        label="Topic"
+        variant="filled"
+        type="Poll Description"
+        required
         value={topic}
         onChange={(e) => setTopic(e.target.value)}
       />
-      <label> Image Url</label>
 
-      <input type="text" value={src} onChange={(e) => setSrc(e.target.value)} />
+      <TextField
+        label="Image Url"
+        variant="filled"
+        type="text"
+        required
+        value={src}
+        onChange={(e) => setSrc(e.target.value)}
+      />
 
       <ul>
         {options.map((option) => (
@@ -50,16 +85,27 @@ function NewPoll(props) {
         ))}{" "}
       </ul>
       <div>
-        <input
+        <TextField
+          label="Option"
+          variant="filled"
           type="text"
           value={newOption}
           onChange={(e) => setNewOption(e.target.value)}
         />
-        <button type="button" onClick={() => addOption(newOption)}>
-          +
-        </button>
+
+        <Button
+          variant="contained"
+          color="success"
+          onClick={(e) => addOption(newOption)}
+        >
+          Add Option
+        </Button>
       </div>
       <button type="submit"> Submit </button>
+
+      <Button type="submit" variant="contained" color="secondary">
+        Submit
+      </Button>
     </form>
   );
 }

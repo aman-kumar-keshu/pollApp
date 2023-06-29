@@ -2,8 +2,27 @@ import React from "react";
 
 import { useNavigate } from "react-router-dom";
 import Button from "@material-ui/core/Button";
+import { logoutUser } from "../services/pollService";
 const Header = (props) => {
+  const { token, clearToken } = props;
   const navigate = useNavigate();
+
+  const redirectToSignup = () => {
+    navigate("/signup");
+  };
+
+  const logout = () => {
+    logoutUser();
+    clearToken();
+  };
+
+  const redirectToNew = () => {
+    navigate("/new");
+  };
+
+  const redirectToLogin = () => {
+    navigate("/login");
+  };
 
   return (
     <>
@@ -26,21 +45,29 @@ const Header = (props) => {
           <>
             <div>polling-app</div>{" "}
             {token ? (
-              <Button variant="contained" color="primary" onClick={handleOpen}>
+              <Button variant="contained" color="primary" onClick={logout}>
                 Logout
               </Button>
             ) : (
-              <Button variant="contained" color="primary" onClick={handleOpen}>
-                Signup
-              </Button>
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={redirectToLogin}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={redirectToSignup}
+                >
+                  Signup
+                </Button>
+              </>
             )}
             {token && (
-              <button
-                onClick={() => {
-                  navigate("/new");
-                }}
-                style={{ height: "50px" }}
-              >
+              <button onClick={redirectToNew} style={{ height: "50px" }}>
                 Create New poll
               </button>
             )}

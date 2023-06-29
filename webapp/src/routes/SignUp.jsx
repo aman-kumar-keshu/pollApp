@@ -1,5 +1,5 @@
-import Form from "../components/SignupForm";
+import SignupForm from "../components/SignupForm";
 
 export default function Signup(props) {
-  return <Form {...props} />;
+  return <SignupForm {...props} />;
 }

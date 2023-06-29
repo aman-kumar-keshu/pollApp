@@ -28,19 +28,28 @@ export const deletePoll = async (id) => {
 export const createUser = async (user) => {
   console.log("Creating a user");
   const res = await axios.post(`${ENDPOINT}/users/signup`, user);
-
-  localStorage.setItem("token", res);
-  return res;
+  console.log(res.request.status);
+  console.log(res.data.token);
+  if (res.request.status === 200) {
+    localStorage.setItem("token", res.data.token);
+  }
 };
 
 export const loginUser = async (user) => {
   console.log("Login User a user");
-  await axios.post(`${ENDPOINT}/users/login`, user);
+  try {
+    const res = await axios.post(`${ENDPOINT}/users/login`, user);
+    console.log(res);
+    if (res.request.status === 202) {
+      console.log("Logged in successfully", res.data.token);
+      localStorage.setItem("token", res.data.token);
+    }
+  } catch (error) {
+    
+  }
+};
 
-  // await axios.post(session_url, {}, {
-  //   auth: {
-  //     username: uname,
-  //     password: pass
-  //   }
-  // });
+export const logoutUser = async () => {
+  console.log("logout user");
+  localStorage.removeItem("token");
 };
