@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
-import { createUser } from "../services/pollService";
+import { loginUser } from "../services/pollService";
 import { useNavigate } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
@@ -23,36 +23,30 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SignupForm = () => {
+const LoginForm = () => {
+  const navigator = useNavigate();
   const classes = useStyles();
   // create state variables for each input
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const navigator = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(name, email, password);
-    await createUser({ id: 1, name, email, password });
-    navigator("/");
-  };
+  const [error, setError] = useState(null);
 
   const goBack = () => {
     navigator("/");
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(email, password);
+    try {
+      loginUser({ email, password });
+    } catch (error) {
+      setError(error);
+    }
+    navigator("/");
+  };
   return (
     <form className={classes.root} onSubmit={handleSubmit}>
-      <TextField
-        label=" Name"
-        variant="filled"
-        required
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
       <TextField
         label="Email"
         variant="filled"
@@ -71,7 +65,7 @@ const SignupForm = () => {
       />
       <div>
         <Button variant="contained" onClick={goBack}>
-          Back
+          Go Back
         </Button>
         <Button
           type="submit"
@@ -79,11 +73,11 @@ const SignupForm = () => {
           variant="contained"
           color="primary"
         >
-          Signup
+          login
         </Button>
       </div>
     </form>
   );
 };
 
-export default SignupForm;
+export default LoginForm;

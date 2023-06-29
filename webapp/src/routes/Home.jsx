@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import PollList from "../components/PollList";
 import Header from "../components/Header";
 import { fetchPolls, updatePolls, deletePoll } from "../services/pollService";
-import { useNavigate } from "react-router-dom";
 
 const sortPolls = (polls) => polls.sort((poll1, poll2) => poll1.id - poll2.id);
 function Home() {
-  const navigator = useNavigate();
   const [polls, setPolls] = useState([]);
   const [token, setToken] = useState("");
 
@@ -36,9 +34,13 @@ function Home() {
     console.log("handle delete");
   };
 
+  const clearToken = () => {
+    setToken("");
+  };
+
   return (
     <>
-      <Header numPolls={polls.length} token={token} />
+      <Header numPolls={polls.length} token={token} clearToken={clearToken} />
       <div className="wrapper">
         <div className="card frame">
           <PollList
