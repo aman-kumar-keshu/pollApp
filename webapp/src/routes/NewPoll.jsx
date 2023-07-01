@@ -24,6 +24,11 @@ const useStyles = makeStyles((theme) => ({
     // This is green.A700 as hex.
     main: "#4caf50",
   },
+  option: {
+    height: "20px",
+    width: "200px",
+    color: "#4caf50",
+  },
 }));
 
 function NewPoll(props) {
@@ -45,7 +50,7 @@ function NewPoll(props) {
   const handleNewPostSubmit = async (e) => {
     e.preventDefault();
     console.log("add new poll callback", name, src, topic);
-    const poll = { name, src, topic };
+    const poll = { name, src, topic, options };
     await createPoll(poll);
     navigator("/");
   };
@@ -81,7 +86,13 @@ function NewPoll(props) {
 
       <ul>
         {options.map((option) => (
-          <li>{option}</li>
+          // <li>{option}</li>
+
+          <div class="menuitem" variant="filled">
+            <Button className="option" variant="contained" color="#4caf50">
+              {option}
+            </Button>
+          </div>
         ))}{" "}
       </ul>
       <div>
@@ -101,9 +112,9 @@ function NewPoll(props) {
           Add Option
         </Button>
       </div>
-      <button type="submit"> Submit </button>
+      {/* <button type="submit"> Submit </button> */}
 
-      <Button type="submit" variant="contained" color="secondary">
+      <Button type="submit" variant="contained" color="primary">
         Submit
       </Button>
     </form>
