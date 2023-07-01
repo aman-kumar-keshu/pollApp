@@ -130,17 +130,35 @@ func (h *Handler) CreatePoll(c *gin.Context) {
 	log.Println("Create POll")
 	var poll model.Poll
 	if err:= c.ShouldBindJSON(&poll); err != nil {
+		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
-	log.Println("New Poll : ",poll)
-	err := h.D.CreatePoll(poll.Name, poll.Topic, poll.Src)
 
+	log.Println("New Poll : ",poll)
+	pollId, err := h.D.CreatePoll(poll.Name, poll.Topic, poll.Src)
+	if poll.Options != nil {
+		for _, option := range poll.Options {
+			log.Println( option)
+
+		optionId, err:= h.D.CreateOption(option, pollId)
+		if err != nil {
+			log.Println("Error creating options")
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		} else {
+			log.Println("New option created", optionId)
+		}
+	}
+	}
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}  
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, gin.H {
+		"message": "Created new Poll",
+		"id" : pollId,
+	})
 
 }
 func (h *Handler) UpdatePoll(c *gin.Context) {

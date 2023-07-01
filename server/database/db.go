@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"polling-app/model"
 	"database/sql"
-
 	"errors"
 )
 
@@ -18,7 +17,9 @@ func NewDB(db *sql.DB) PostgresDB {
 }
 
 func (d *PostgresDB) GetPolls() (model.PollCollection, error) {
-	sql := "SELECT * FROM polls order by id"
+	sql := `select a.id, a.name, a.topic, a.src,a.upvotes, a.downvotes,b.option from polls a
+	left join options b
+	on a.id = b.pollid`
 
 	rows, err := d.db.Query(sql)
 
@@ -30,10 +31,12 @@ func (d *PostgresDB) GetPolls() (model.PollCollection, error) {
 
 	result := model.PollCollection{}
 
+	log.Println("Fetched rows from the db")
+
 	for rows.Next() {
 		poll := model.Poll{}
 
-		err2 := rows.Scan(&poll.ID, &poll.Name, &poll.Topic, &poll.Src, &poll.Upvotes, &poll.Downvotes)
+		err2 := rows.Scan(&poll.ID, &poll.Name, &poll.Topic, &poll.Src, &poll.Upvotes, &poll.Downvotes, &poll.Options)
 
 		if err2 != nil {
 			panic(err2)
@@ -88,16 +91,37 @@ func (d *PostgresDB) UpdatePoll( id int, name string, upvotes int, downvotes int
 	return nil
 }
 
-func (d *PostgresDB) CreatePoll (name string, topic string, src string) error {
+func (d *PostgresDB) CreateOption (option string, pollId int) (int, error) {
+	// query := fmt.Sprintf("INSERT INTO options( option, pollId) VALUES('%s',%d)", option, pollId)
+	sql := `INSERT INTO options(option, pollId) 
+	VALUES ($1, $2) returning id`
+	id := 0
+	err := d.db.QueryRow(sql, option, pollId).Scan(&id)
+  	fmt.Println("New Option ID is:", id)
+	  if err != nil {
+		panic(err)
+	}
+
+	return id,nil
+}
+
+func (d *PostgresDB) CreatePoll (name string, topic string, src string ) (int, error ){
 	fmt.Println("create post db func",name,topic,src)
-	query := fmt.Sprintf("INSERT INTO polls(name, topic, src, upvotes, downvotes) VALUES('%s','%s', '%s', 0, 0)", name,topic, src)
-	fmt.Print(query)
-	_, err := d.db.Query(query)
 	
+	sqlStatement := `
+	INSERT INTO polls(name, topic, src, upvotes, downvotes) 
+	VALUES ($1, $2, $3, $4, $5) returning id`
+
+	fmt.Println("Sql Statement", sqlStatement)
+	id := 0
+ 	err := d.db.QueryRow(sqlStatement, name, topic, src, 0, 0).Scan(&id)
+  	fmt.Println("New Poll ID is:", id)
+
 	if err != nil {
 		panic(err)
 	}
-	return nil
+
+	return  id,nil
 }
 
 func (d *PostgresDB) DeletePoll(id int) error{
@@ -140,7 +164,7 @@ func (d *PostgresDB) CreateUser (name string, email string, password string) (mo
 	}
 	if user.Email == email {
 		log.Println("User already exists with this email")
-		return user, errors.New("User already exists with this email")
+		return user, errors.New("user already exists with this email")
 
 	}
 	query := fmt.Sprintf("INSERT INTO users(name, email, password) VALUES('%s','%s', '%s')", name, email, password)
@@ -173,6 +197,7 @@ func (d *PostgresDB) Migrate (){
 	DROP TABLE polls;
 	DROP TABLE users;
 	DROP TABLE tokens;
+	drop table options;
 
 
 	CREATE TABLE IF NOT EXISTS polls (
@@ -182,6 +207,7 @@ func (d *PostgresDB) Migrate (){
 					  src VARCHAR NOT NULL,
 					  upvotes INT NOT NULL,
 					  downvotes INT NOT NULL
+					  
 	  );
 
 	  INSERT INTO polls (name, topic, src, upvotes, downvotes) VALUES(
@@ -220,6 +246,12 @@ func (d *PostgresDB) Migrate (){
 
 	INSERT INTO tokens (token,userId) VALUES(
 				'346ae688-e640-45e5-9e84-f526df595f0d',1);
+
+	CREATE TABLE IF NOT EXISTS options (
+				id SERIAL NOT NULL PRIMARY KEY,
+				pollId int NOT NULL,
+				option VARCHAR(255) NOT NULL
+			  ); 
 			  
 
 	`
