@@ -80,7 +80,6 @@ func (h *Handler) LoginUser(c *gin.Context) {
 			"message": "User not Found with email",
 		})
 		return
-
 	}
 
 	 if err != nil {
@@ -115,7 +114,7 @@ func (h *Handler) GetPolls(c *gin.Context) {
 	log.Println("Fetching polls from DB")
  
 	polls, err := h.D.GetPolls()
-	log.Println("We got poll", polls)
+	log.Println("We got polls", polls)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -128,7 +127,7 @@ func (h *Handler) GetPolls(c *gin.Context) {
 
 func (h *Handler) CreatePoll(c *gin.Context) {
 	log.Println("Create POll")
-	var poll model.Poll
+	var poll model.PollRequest
 	if err:= c.ShouldBindJSON(&poll); err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -161,8 +160,28 @@ func (h *Handler) CreatePoll(c *gin.Context) {
 	})
 
 }
+func (h *Handler) UpdateOption (c *gin.Context) {
+ 	var option model.Option
+	id, _ := strconv.Atoi(c.Param("id"))
+	log.Println("Update Option", id)
+	if err:= c.ShouldBindJSON(&option); err!= nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	id, err := h.D.UpdateOption(id, option.Votes)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	log.Println("Updated option", id)
+	c.JSON(http.StatusOK, gin.H {
+		"id" : id,
+		"message": "Updated option",
+	})
+
+}
 func (h *Handler) UpdatePoll(c *gin.Context) {
-	log.Println("updating polls")
+	log.Println("updating poll")
 
 	var poll model.Poll
 	id,_ := strconv.Atoi(c.Param("id"))

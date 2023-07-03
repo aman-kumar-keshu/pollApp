@@ -35,8 +35,14 @@ const SignupForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(name, email, password);
-    await createUser({ id: 1, name, email, password });
-    navigator("/");
+    try {
+      const response = await createUser({ id: 1, name, email, password });
+      console.log(response);
+      navigator("/");
+    } catch (error) {
+      alert("User already exisits");
+      navigator("/signup");
+    }
   };
 
   const goBack = () => {

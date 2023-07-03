@@ -20,6 +20,11 @@ export const updatePolls = async (id, updatedPoll) => {
   await axios.put(`${ENDPOINT}/poll/${id}`, updatedPoll);
 };
 
+export const updateOption = async (id, updatedOption) => {
+  console.log("Updating option to DB");
+  await axios.put(`${ENDPOINT}/option/${id}`, updatedOption);
+};
+
 export const deletePoll = async (id) => {
   console.log("Deteting the poll");
   await axios.delete(`${ENDPOINT}/poll/${id}`);
@@ -36,17 +41,12 @@ export const createUser = async (user) => {
 };
 
 export const loginUser = async (user) => {
-  console.log("Login User a user");
-  try {
-    const res = await axios.post(`${ENDPOINT}/users/login`, user);
-    console.log(res);
-    if (res.request.status === 202) {
-      console.log("Logged in successfully", res.data.token);
-      localStorage.setItem("token", res.data.token);
-    }
-  } catch (error) {
-    
+  const res = await axios.post(`${ENDPOINT}/users/login`, user);
+  console.log("Login service", res.request);
+  if (res.request.status === 202) {
+    localStorage.setItem("token", res.data.token);
   }
+  return res;
 };
 
 export const logoutUser = async () => {
