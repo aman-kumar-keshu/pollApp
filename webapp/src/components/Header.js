@@ -43,7 +43,7 @@ const Header = (props) => {
           }}
         >
           <>
-            <div>polling-app</div>{" "}
+            <div className="title">polling-app</div>{" "}
             {token ? (
               <Button variant="contained" color="primary" onClick={logout}>
                 Logout
@@ -67,7 +67,7 @@ const Header = (props) => {
               </>
             )}
             {token && (
-              <button onClick={redirectToNew} style={{ height: "50px" }}>
+              <button onClick={redirectToNew} style={{ height: "30px" }}>
                 Create New poll
               </button>
             )}
@@ -75,14 +75,7 @@ const Header = (props) => {
         </div>
       </div>
       <div className="card-header"></div>
-      <h1
-        style={{
-          marginLeft: "500px",
-        }}
-        className="card-header-title header"
-      >
-        You have {props.numPolls} Polls
-      </h1>
+      <h1 className="heading">You have {props.numPolls} Polls</h1>
     </>
   );
 };

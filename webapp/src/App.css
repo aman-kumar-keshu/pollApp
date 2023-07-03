@@ -1,34 +1,100 @@
-body {
+/* body {
     all: unset;
-}
+} */
+.poll {
+    font-size: 0.9rem;
+    background: rgb(17, 23, 72);
+    width: 800px;
+    padding: 30;
+    margin: auto;
 
-.content {
+  }
+  .poll ul div{
+    padding: 0;
+    width: 1200px;
+    margin: auto;
+  }
+  .poll ul div li {
+    list-style: none;
+    border: 2px solid #00ddf9;
+    border-radius: 3px;
+    line-height: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+  
+
+button{
+    border: 10px;
+    background: rgb(255, 255, 255);
+    margin: 10px;
+    
+    height: 50px;
+    max-width: 200px;
+    min-width: 150px;
+     
+    padding: 1px;
+    color: #1d0202;
+    font-size: 1rem;
+    font-weight: bold;
+    display: inline-block;
+  }
+  .poll ul li span {
+    display: none;
+  }
+  .poll ul.results li button span {
+    display: inline-block;
+    margin-left: 8px;
+  }
+  /* .poll ul.results div div li {
+    border-color: #999;
+  } */
+
+/* .content {
     background-color: white;
     padding-left: 10rem;
-}
-@media screen and (min-width: 800px) {
+} */
+
+/* @media screen and (min-width: 80px) {
     body {
-        padding-right: 15%;
+        padding-right: 5%;
         padding-left: 15%;
     }
-}
+} */
 
-@media screen and (min-width: 1600px) {
+/* @media screen and (min-width: 160px) {
     body {
         padding-right: 30%;
         padding-left: 30%;
-    }
-}
+    };
+} */
 
-code {
+/* code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
     background-color: #b3e6ff;
-}
+} */
 
 .title {
-    text-align: center;
+    padding-top: 20px;
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New';
+    /* margin-top: auto;    */
+    display: "flex";
+    color: #eddfdf;
+    font-weight: bold;
+    flex-Direction: "column";
+
 }
+.heading {
+     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New';
+    /* margin-top: auto;    */
+     color: #0e0d0d;
+    font-weight: bold;
+    margin: "500px";
+    padding-left: 350px;
+
+     
+ }
 
 .logo {
     text-align: center;

@@ -35,15 +35,21 @@ const LoginForm = () => {
     navigator("/");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(email, password);
     try {
-      loginUser({ email, password });
+      const res = await loginUser({ email, password });
+
+      console.log("Logged in successfully", res);
+      alert("Logged in Successfully");
+
+      navigator("/");
+
+      navigator("/");
     } catch (error) {
-      setError(error);
+      alert(error.response.data.message);
+      navigator("/login");
     }
-    navigator("/");
   };
   return (
     <form className={classes.root} onSubmit={handleSubmit}>
@@ -73,7 +79,7 @@ const LoginForm = () => {
           variant="contained"
           color="primary"
         >
-          login
+          LOGIN
         </Button>
       </div>
     </form>
